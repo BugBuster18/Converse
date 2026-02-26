@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken'
-import prisma from '../lib/prismaClient'
+import prisma from '../lib/prismaClient.js'
 
 export const protectRoute = async (req,res,next)=>{
    try {
@@ -21,7 +21,13 @@ export const protectRoute = async (req,res,next)=>{
 
          const user = await prisma.user.findUnique({
             where:{id:decoded.userId},
-            select:{password:false}
+              select: {
+                    id: true,
+                    email: true,
+                    fullName: true,
+                    profilePic: true,
+                    createdAt: true,
+                }
          })
 
          if(!user){
