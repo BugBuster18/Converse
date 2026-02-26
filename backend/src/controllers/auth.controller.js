@@ -1,6 +1,7 @@
 import prisma from "../lib/prismaClient.js";
 import bcrypt from 'bcryptjs'
 import { generateToken } from "../lib/utils.js";
+import cloudinary from "../lib/cloudinary.js";
 
 export const signup = async (req,res)=>{
     try{
@@ -81,7 +82,7 @@ export const login = async (req,res)=>{
         })
     }
 }
-export const logout = (res,req)=>{
+export const logout = (req,res)=>{
    try {
         res.cookie("jwt","",{maxAge:0});
         res.status(200).json({
@@ -95,3 +96,27 @@ export const logout = (res,req)=>{
         }).status(500)
    }
 } 
+export const updateProfile= async (req,res)=>{
+    try {
+        const {profilePic} = req.body
+        const userId = req.user.id; ;
+        
+        if(!profilePic){
+           return res.status(400).json({
+            message:"profile pic not provided"
+           })
+        }
+
+        const uploadResponse = await cloudinary.uploader.upload(profilePic)
+
+        const updatedUser = await prisma.user.update({where:{userId}, data:{profilePic:uploadResponse.secure_url}})
+
+        res.status(200).json(updatedUser)
+
+    } catch (error) {
+        console.log("error in updating profile",error.message)
+        res.json({
+            message:"internal server error"
+        }).status(500)
+    }
+}
